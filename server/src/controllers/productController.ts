@@ -37,7 +37,7 @@ export const getProductById = async (
   try {
     // Validate the ID format first - MongoDB ObjectIDs have a specific format
 
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id as string)) {
       res.status(400).json({ message: "Invalid product ID format" });
       return;
     }
@@ -62,13 +62,15 @@ export const getProductsByCategory = async (
 ): Promise<void> => {
   try {
     const validCategories = ["headphone", "speakers", "earphones"];
-    const category = req.params.category.toLowerCase();
+    const category = (req.params.category as string).toLowerCase();
 
     if (!validCategories.includes(category)) {
       res.status(400).json({ message: "Invalid category" });
     }
 
-    const products = await Product.find({ category }).sort({ createdAt: -1 });
+    const products = await Product.find({
+      category: category as "headphones" | "speakers" | "earphones",
+    }).sort({ createdAt: -1 });
     res.status(200).json(products);
   } catch (error) {
     res
@@ -93,7 +95,7 @@ export const createProduct = async (
       features,
       inTheBox,
       gallery,
-      isNew,
+      isNewArrival,
     } = req.body;
 
     // validate required fields
@@ -111,7 +113,7 @@ export const createProduct = async (
       features,
       inTheBox: inTheBox || [],
       gallery: gallery || [],
-      isNew: isNew || false,
+      isNewArrival: isNewArrival || false,
     });
 
     res.status(201).json(product);
@@ -128,7 +130,7 @@ export const updateProduct = async (
   res: Response,
 ): Promise<void> => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id as string)) {
       res.status(400).json({ message: "Invalid Product ID" });
       return;
     }
@@ -148,7 +150,7 @@ export const updateProduct = async (
     product.description = req.body.description ?? product.description;
     product.features = req.body.features ?? product.features;
     product.inTheBox = req.body.inTheBox ?? product.inTheBox;
-    product.isNew =
+    product.isNewArrival =
       req.body.isNew !== undefined ? req.body.isNew : product.isNew;
 
     // Only update image URL if a new one is provided
@@ -171,7 +173,7 @@ export const deleteProduct = async (
   res: Response,
 ): Promise<void> => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id as string)) {
       res.status(400).json({ message: "Invalid Product ID" });
       return;
     }
